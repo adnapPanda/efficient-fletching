@@ -1,17 +1,14 @@
 package com.EfficientFletching;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import static net.runelite.api.AnimationID.*;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.StatChanged;
-import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
@@ -26,11 +23,11 @@ import java.util.Set;
 )
 public class EfficientFletchingPlugin extends Plugin
 {
-	int setsLeft = 0;
-	float shortTimer = 30; //A short timer that will remove the overlay after 30 seconds
-	boolean correctOptionSelected = false;
+	int setsLeft, imageToUse;
+	float shortTimer; //A short timer that will remove the overlay after 30 seconds
+	boolean correctOptionSelected;
 
-	EfficientFletchingOverlay counter = null;
+	EfficientFletchingOverlay counter;
 
 	private static final Set<Integer> FLETCHING_ANIMATION_IDS = ImmutableSet.of(FLETCHING_ATTACH_BOLT_TIPS_TO_ADAMANT_BOLT, FLETCHING_ATTACH_BOLT_TIPS_TO_BLURITE_BOLT,
 			FLETCHING_ATTACH_BOLT_TIPS_TO_BRONZE_BOLT, FLETCHING_ATTACH_BOLT_TIPS_TO_DRAGON_BOLT, FLETCHING_ATTACH_BOLT_TIPS_TO_IRON_BROAD_BOLT, FLETCHING_ATTACH_BOLT_TIPS_TO_MITHRIL_BOLT,
@@ -59,11 +56,12 @@ public class EfficientFletchingPlugin extends Plugin
 			mithrilJavelin = {"Mithril javelin heads", "Javelin shaft"}, adamantJavelin = {"Adamant javelin heads", "Javelin shaft"}, runeJavelin = {"Rune javelin heads", "Javelin shaft"},
 			amethystJavelin = {"Amethyst javelin heads", "Javelin shaft"}, dragonJavelin = {"Dragon javelin heads", "Javelin shaft"};
 
-	@Inject
-	private Client client;
+	//Chose Emerald Bolts as picture cause I wanted to
+	int HEADLESS_ARROWS = 53, DRAGON_BOLTS = 21905, JAVELIN_SHAFT = 19584, EMERALD_BOLTS = 9338;
+
 
 	@Inject
-	private EfficientFletchingConfig config;
+	private Client client;
 
 	@Inject
 	private InfoBoxManager infoBoxManager;
@@ -74,7 +72,10 @@ public class EfficientFletchingPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		log.info("Example started!");
+		setsLeft = 0;
+		shortTimer = 30;
+		correctOptionSelected = false;
+		counter = null;
 	}
 
 	@Override
@@ -83,22 +84,17 @@ public class EfficientFletchingPlugin extends Plugin
 		closeCounter();
 	}
 
-	@Provides
-	EfficientFletchingConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(EfficientFletchingConfig.class);
-	}
-
 	private void updateCounter() {
 		if (counter == null)
 		{
-			//TODO: Add itemID's for different items being fletched. (Arrows,Dragon Bolts, Bolts, Javelins)
-			counter = new EfficientFletchingOverlay(itemManager.getImage(53), this, setsLeft);
+			counter = new EfficientFletchingOverlay(itemManager.getImage(imageToUse), this, setsLeft);
 			infoBoxManager.addInfoBox(counter);
 		}
 		else
 		{
 			counter.addSets(setsLeft);
+			counter.setImage(itemManager.getImage(imageToUse)); // Update overlay image
+			infoBoxManager.updateInfoBoxImage(counter);
 		}
 	}
 
@@ -114,7 +110,6 @@ public class EfficientFletchingPlugin extends Plugin
 	public void onStatChanged(StatChanged event) {
 		if (event.getSkill() == Skill.FLETCHING && correctOptionSelected) {
 			shortTimer = 30;
-			log.info(String.valueOf(setsLeft));
 			setsLeft -= 1;
 			updateCounter();
 			if (setsLeft == 0) {
@@ -151,7 +146,7 @@ public class EfficientFletchingPlugin extends Plugin
 		if (containsWords(target, headlessArrows) || containsWords(target, bronzeArrows) || containsWords(target, ironArrows) || containsWords(target, steelArrows)
 				|| containsWords(target, mithrilArrows) || containsWords(target, broadArrows) || containsWords(target, adamantArrows) || containsWords(target, runeArrows)
 				|| containsWords(target, amethystArrows) || containsWords(target, dragonArrows)) {
-			log.info("Arrows");
+			imageToUse = HEADLESS_ARROWS;
 			correctOptionSelected = true;
 			setsLeft = 10;
 		}
@@ -160,7 +155,7 @@ public class EfficientFletchingPlugin extends Plugin
 		else if (containsWords(target, opalDragonBolts) || containsWords(target, jadeDragonBolts) || containsWords(target, pearlDragonBolts) || containsWords(target, topazDragonBolts)
 				|| containsWords(target, sapphireDragonBolts) || containsWords(target, emeraldDragonBolts) || containsWords(target, rubyDragonBolts) || containsWords(target, diamondDragonBolts)
 				|| containsWords(target, dragonstoneDragonBolts) || containsWords(target, onyxDragonBolts)) {
-			log.info("dragonBolts");
+			imageToUse = DRAGON_BOLTS;
 			correctOptionSelected = true;
 			setsLeft = 10;
 		}
@@ -169,7 +164,7 @@ public class EfficientFletchingPlugin extends Plugin
 		else if (containsWords(target, opalBolts) || containsWords(target, jadeBolts) || containsWords(target, pearlBolts) || containsWords(target, topazBolts)
 				|| containsWords(target, barbBolts) || containsWords(target, sapphireBolts) || containsWords(target, emeraldBolts) || containsWords(target, rubyBolts)
 				|| containsWords(target, diamondBolts) || containsWords(target, dragonstoneBolts) || containsWords(target, onyxBolts) || containsWords(target, amethystBolts)) {
-			log.info("bolts");
+			imageToUse = EMERALD_BOLTS;
 			correctOptionSelected = true;
 			setsLeft = 10;
 		}
@@ -177,7 +172,7 @@ public class EfficientFletchingPlugin extends Plugin
 		//Javelins
 		else if (containsWords(target, bronzeJavelin) || containsWords(target, ironJavelin) || containsWords(target, steelJavelin) || containsWords(target, mithrilJavelin)
 				|| containsWords(target, adamantJavelin) || containsWords(target, runeJavelin) || containsWords(target, amethystJavelin) || containsWords(target, dragonJavelin)) {
-			log.info("javelins");
+			imageToUse = JAVELIN_SHAFT;
 			correctOptionSelected = true;
 			setsLeft = 10;
 		} else if (String.valueOf(menuOptionClicked.getMenuAction()) == "ITEM_USE_ON_WIDGET_ITEM") { //If any other fletching action/action is selected then set to false
