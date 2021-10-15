@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import static net.runelite.api.AnimationID.*;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.StatChanged;
@@ -14,8 +15,10 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
+import sun.awt.windows.WPrinterJob;
 
 import java.util.Set;
+import java.util.regex.*;
 
 @Slf4j
 @PluginDescriptor(
@@ -25,7 +28,7 @@ public class EfficientFletchingPlugin extends Plugin
 {
 	int setsLeft, imageToUse;
 	float shortTimer; //A short timer that will remove the overlay after 30 seconds
-	boolean correctOptionSelected;
+	boolean correctOptionSelected, enchantingBolts;
 
 	EfficientFletchingOverlay counter;
 
@@ -56,8 +59,7 @@ public class EfficientFletchingPlugin extends Plugin
 			mithrilJavelin = {"Mithril javelin heads", "Javelin shaft"}, adamantJavelin = {"Adamant javelin heads", "Javelin shaft"}, runeJavelin = {"Rune javelin heads", "Javelin shaft"},
 			amethystJavelin = {"Amethyst javelin heads", "Javelin shaft"}, dragonJavelin = {"Dragon javelin heads", "Javelin shaft"};
 
-	//Chose Emerald Bolts as picture cause I wanted to
-	int HEADLESS_ARROWS = 53, DRAGON_BOLTS = 21905, JAVELIN_SHAFT = 19584, EMERALD_BOLTS = 9338;
+	int HEADLESS_ARROWS = 53, DRAGON_BOLTS = 21905, JAVELIN_SHAFT = 19584, EMERALD_BOLTS = 9338, RUBY_BOLTS_E = 9242;
 
 
 	@Inject
@@ -75,6 +77,7 @@ public class EfficientFletchingPlugin extends Plugin
 		setsLeft = 0;
 		shortTimer = 30;
 		correctOptionSelected = false;
+		enchantingBolts = false;
 		counter = null;
 	}
 
@@ -108,7 +111,8 @@ public class EfficientFletchingPlugin extends Plugin
 
 	@Subscribe
 	public void onStatChanged(StatChanged event) {
-		if (event.getSkill() == Skill.FLETCHING && correctOptionSelected) {
+		if ((event.getSkill() == Skill.FLETCHING || event.getSkill() == Skill.MAGIC) && correctOptionSelected) {
+			enchantingBolts = false;
 			shortTimer = 30;
 			setsLeft -= 1;
 			updateCounter();
@@ -135,6 +139,16 @@ public class EfficientFletchingPlugin extends Plugin
 		if (counter != null) {
 			infoBoxManager.removeInfoBox(counter);
 			counter = null;
+		}
+	}
+
+	@Subscribe
+	public void onChatMessage(ChatMessage chatMessage) {
+		String message = chatMessage.getMessage();
+		if (enchantingBolts && message.equals("The magic of the runes coaxes out the true nature of the gem tips.")) {
+			imageToUse = RUBY_BOLTS_E;
+			correctOptionSelected = true;
+			setsLeft = 10;
 		}
 	}
 
@@ -175,7 +189,9 @@ public class EfficientFletchingPlugin extends Plugin
 			imageToUse = JAVELIN_SHAFT;
 			correctOptionSelected = true;
 			setsLeft = 10;
-		} else if (String.valueOf(menuOptionClicked.getMenuAction()) == "ITEM_USE_ON_WIDGET_ITEM") { //If any other fletching action/action is selected then set to false
+		} else if (String.valueOf(menuOptionClicked.getMenuTarget()).contains("Enchant Crossbow Bolt")) {
+			enchantingBolts = true;
+		} else if (String.valueOf(menuOptionClicked.getMenuAction()).equals("ITEM_USE_ON_WIDGET_ITEM")) { //If any other fletching action/action is selected then set to false
 			correctOptionSelected = false;
 		}
 	}
