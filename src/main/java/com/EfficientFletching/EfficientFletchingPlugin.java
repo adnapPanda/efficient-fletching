@@ -38,7 +38,10 @@ public class EfficientFletchingPlugin extends Plugin
 	String[] headlessArrows = {"Feather","Arrow shaft"}, bronzeArrows = {"Headless arrow","Bronze arrowtips"}, ironArrows = {"Headless arrow","Iron arrowtips"},
 			steelArrows = {"Headless arrow","Steel arrowtips"}, mithrilArrows = {"Headless arrow","Mithril arrowtips"}, broadArrows = {"Headless arrow","Broad arrowheads"},
 			adamantArrows = {"Headless arrow","Adamant arrowtips"}, runeArrows = {"Headless arrow","Rune arrowtips"}, amethystArrows = {"Headless arrow","Amethyst arrowtips"},
-			dragonArrows = {"Headless arrow","Dragon arrowtips"};
+			dragonArrows = {"Headless arrow","Dragon arrowtips"}, seekingheadlessArrows = {"Feather","Seeking arrow shaft"}, seekingbronzeArrows = {"Seeking headless arrow","Bronze arrowtips"}, seekingironArrows = {"Seeking headless arrow","Iron arrowtips"},
+			seekingsteelArrows = {"Seeking headless arrow","Steel arrowtips"}, seekingmithrilArrows = {"Seeking headless arrow","Mithril arrowtips"}, seekingbroadArrows = {"Seeking headless arrow","Broad arrowheads"},
+			seekingadamantArrows = {"Seeking headless arrow","Adamant arrowtips"}, seekingruneArrows = {"Seeking headless arrow","Rune arrowtips"}, seekingamethystArrows = {"Seeking headless arrow","Amethyst arrowtips"},
+			seekingdragonArrows = {"Seeking headless arrow","Dragon arrowtips"};
 
 	//Diamond Bolts
 	String[] opalDragonBolts = {"Opal bolt tips", "Dragon bolts"}, jadeDragonBolts = {"Jade bolt tips", "Dragon bolts"}, pearlDragonBolts = {"Pearl bolt tips", "Dragon bolts"},
@@ -155,9 +158,12 @@ public class EfficientFletchingPlugin extends Plugin
 		String target = menuOptionClicked.getMenuTarget();
 
 		//Arrows
+		// TODO:
 		if (containsWords(target, headlessArrows) || containsWords(target, bronzeArrows) || containsWords(target, ironArrows) || containsWords(target, steelArrows)
 				|| containsWords(target, mithrilArrows) || containsWords(target, broadArrows) || containsWords(target, adamantArrows) || containsWords(target, runeArrows)
-				|| containsWords(target, amethystArrows) || containsWords(target, dragonArrows)) {
+				|| containsWords(target, amethystArrows) || containsWords(target, dragonArrows) || containsWords(target, seekingheadlessArrows) || containsWords(target, seekingbronzeArrows) || containsWords(target, seekingironArrows) || containsWords(target, seekingsteelArrows)
+				|| containsWords(target, seekingmithrilArrows) || containsWords(target, seekingbroadArrows) || containsWords(target, seekingadamantArrows) || containsWords(target, seekingruneArrows)
+				|| containsWords(target, seekingamethystArrows) || containsWords(target, seekingdragonArrows)) {
 			imageToUse = HEADLESS_ARROWS;
 			correctOptionSelected = true;
 			setsLeft = 10;
